@@ -1,11 +1,13 @@
 package org.example.impl;
 
+import com.mysql.cj.jdbc.exceptions.MySQLTransactionRollbackException;
 import org.example.entity.Account;
 import org.example.entity.BankTransaction;
 import org.example.enums.TransactionType;
 import org.example.factory.MySessionFactory;
 import org.example.service.BankTransactionService;
 import org.hibernate.*;
+import org.hibernate.exception.LockTimeoutException;
 import org.hibernate.query.Query;
 
 import java.util.List;
@@ -25,6 +27,7 @@ public class BankTransactionServiceImpl implements BankTransactionService {
             transaction = session.beginTransaction(); // START TRANSACTION
             TransactionHelper(session, accountId, amount, transactionType);
             transaction.commit();
+
         } catch (Exception e) {
             if (transaction != null) {
                 transaction.rollback();
@@ -52,6 +55,7 @@ public class BankTransactionServiceImpl implements BankTransactionService {
 
             // commit transaction;
             transaction.commit();
+
         } catch (Exception e) {
             if (transaction != null) {
                 transaction.rollback();

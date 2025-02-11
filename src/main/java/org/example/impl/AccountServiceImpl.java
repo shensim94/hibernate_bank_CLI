@@ -7,6 +7,7 @@ import org.example.service.AccountService;
 import org.hibernate.*;
 import org.hibernate.query.Query;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -86,17 +87,21 @@ public class AccountServiceImpl implements AccountService {
         try (Session session = sessionFactory.openSession()) {
             transaction = session.beginTransaction(); // START TRANSACTION
             User user = session.get(User.class, userId);
+            if (user == null) {
+                transaction.commit();
+                throw new RuntimeException("User " + userId + " not found");
+            }
             Hibernate.initialize(user.getAccounts());
             List<Account> accounts = user.getAccounts();
             transaction.commit();
             return accounts;
         } catch (Exception e) {
-            if (transaction != null) {
+            if (transaction != null && transaction.isActive()) {
                 transaction.rollback();
             }
             System.out.println("transaction failed: " + e.getMessage());
         }
-        return null;
+        return new ArrayList<>(); // return an empty list if try-block fails
     }
 
     @Override
@@ -121,6 +126,6 @@ public class AccountServiceImpl implements AccountService {
             }
             System.out.println("transaction failed: " + e.getMessage());
         }
-        return null;
+        return new ArrayList<>(); // return an empty list if try-block fails
     }
 }
